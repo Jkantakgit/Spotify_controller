@@ -1,3 +1,15 @@
+##
+# @file library_spotify.py
+#
+# @brief library for main program with functions for mqtt connetions and spotify API calls
+#
+#
+# @section author_doxygen_example Author(s)
+# - Created by Petr Holánek on 30.8.2024.
+# - Modified by Petr Holánek on 30.8.2024.
+#
+
+#imports
 from tkinter.constants import E, HORIZONTAL, W
 import spotipy
 import threading
@@ -15,6 +27,7 @@ from paho.mqtt import client as cl
 import random
 
 
+#mqtt configurations
 broker = "10.180.0.9"
 port = 1883
 topic = [("zigbee2mqtt/Dvere Petr", 0), ("zigbee2mqtt/tlacitko", 0)]
@@ -22,7 +35,7 @@ client_id = f"python-mqtt-{random.randint(0, 1000)}"
 username = ""
 password = ""
 
-
+#function for getting acess token for spotify API
 def get_token(id, secret, uri, scope):
     sp = spotipy.Spotify(
         auth_manager=SpotifyOAuth(
@@ -31,7 +44,7 @@ def get_token(id, secret, uri, scope):
     )
     return sp
 
-
+#Helper function to keep track of saved tracks
 def make_lists_of_tracks(sp, error):
     error = None
     f = open("Ids.txt", "w")
@@ -57,19 +70,19 @@ def make_lists_of_tracks(sp, error):
         f.write("Error in track list, 001")
         f.close()
 
-
-def callback_1(Stop, window, img_stop):
+#Spotify API callback to stop current track playback
+def callback_stop(Stop, window, img_stop):
     Stop.configure(image=img_stop)
     Stop.image = img_stop
     window.update_idletasks()
 
-
-def callback_2(Stop, window, img_play):
+#Spotify API callback to resume current track playback
+def callback_play(Stop, window, img_play):
     Stop.configure(image=img_play)
     Stop.image = img_play
     window.update_idletasks()
 
-
+#helper function to convert miliseconds to minutes and seconds in a minutes:seconds format
 def ms_to_min(progress):
     b = (progress / 1000) % 60
     b = int(b)
@@ -78,7 +91,7 @@ def ms_to_min(progress):
     progress_min = "%d:%d" % (c, b)
     return progress_min
 
-
+#function to get current playing track cover image
 def get_img(item):
     album = item.get("album")
     images = album.get("images")
@@ -88,7 +101,7 @@ def get_img(item):
         response = requests.get(imag)
         fil.write(response.content)
 
-
+#helper function for author name lenght, if the name is too long it crops it
 def check_author_lenghts(item):
     artist = ""
     artist_list = item.get("artists")
@@ -110,20 +123,20 @@ def check_author_lenghts(item):
         b += 1
     return artist
 
-
+#helper function for changing cover picture
 def change_alb_pic(Panel, window):
     alb_img = ImageTk.PhotoImage(Image.open("./resources/alb.png"))
     Panel.config(image=alb_img)
     Panel.image = alb_img
     window.update_idletasks()
 
-
-def progress_hodnoty(a, b):
+#calculates progress bar progress based on current time and maximum time
+def progress_values(a, b):
     c = a / b
     t = c * 100
     return t
 
-
+#function that gets all track info from spotify API
 def track_info(
     sp,
     Stop,
@@ -168,19 +181,19 @@ def track_info(
                         current_authors.set(authors)
                         maxim_time = ms_to_min(max_time)
                         maxs_time.set(maxim_time)
-                        t = progress_hodnoty(progress_ms, max_time)
+                        t = progress_values(progress_ms, max_time)
                         prog["value"] = t
                         window.update_idletasks()
                     if a == 1:
                         change_alb_pic(Panel, window)
                         a = 0
                         id_song = item.get("id")
-                        callback_1(Stop, window, img_stop)
+                        callback_stop(Stop, window, img_stop)
                 else:
                     continue
             else:
                 if a == 0:
-                    callback_2(Stop, window, img_play)
+                    callback_play(Stop, window, img_play)
                     img2 = Image.new("1", (64, 64))
                     img2.save("./resources/alb.png")
                     change_alb_pic(Panel, window)
@@ -188,20 +201,20 @@ def track_info(
         except Exception as s:
             error.set("Error in track thread, 002(%s)" % s)
 
-
+#Creates thread for making list of saved songs
 def id(sp, error):
     t = threading.Thread(target=make_lists_of_tracks, args=[sp, error], daemon=True)
     t.setName("ID")
     return t
 
-
+#function that reads saved songs from file and splits it into array
 def read_ids():
     f = open("Ids.txt", "r")
     ids = f.read()
     ids = ids.splitlines()
     return ids
 
-
+#initializes variables from file
 def initialize_variables():
     f = open("variables", "r")
     string = f.read()
@@ -212,12 +225,12 @@ def initialize_variables():
     Url = string[3]
     return scope, Id, Secret, Url
 
-
+#Creates blank picture when no song is playing
 def make_black_pic():
     img2 = Image.new("1", (64, 64))
     img2.save("./resources/alb.png")
 
-
+#initializes elements for window with functions and styles
 def initialize_windowns_and_buttons(
     alb_img,
     stop_img,
@@ -328,7 +341,7 @@ def initialize_windowns_and_buttons(
         time_label,
     )
 
-
+#Function thast checks playback and resumes or stops song based on that information
 def stop_play(sp):
     current_track_info = sp.current_user_playing_track()
     try:
@@ -340,7 +353,7 @@ def stop_play(sp):
     else:
         sp.start_playback()
 
-
+#Initializes pictures from assets
 def initialize_pictures():
     like_non = ImageTk.PhotoImage(Image.open("./resources/like_non.png"))
     next_img = tk.PhotoImage(file="./resources/Next_butt.png")
@@ -352,7 +365,7 @@ def initialize_pictures():
     alb_img = ImageTk.PhotoImage(Image.open("./resources/alb.png"))
     return like_non, next_img, play_img, prev_img, stop_img, alb_img
 
-
+#initializes string variables for names and timestamps
 def initialize_StringVar():
     current_authors = tk.StringVar()
     trackname = tk.StringVar()
@@ -364,7 +377,7 @@ def initialize_StringVar():
     mode.set("stop")
     return current_authors, trackname, progress, maxs_time, var_time, mode, error
 
-
+#initializes layout for window with elements
 def initialize_window(
     Panel,
     Track,
@@ -399,17 +412,17 @@ def initialize_window(
     max_times.grid(row=1, column=14)
     time_label.grid(row=3, columnspan=3)
     window.grid_columnconfigure(0, weight=1)
-    window.bind("<Return>", callback_1)
+    window.bind("<Return>", callback_stop)
 
-
+#API call for skipping song
 def next_track(sp):
     sp.next_track()
 
-
+#API call for gooing to previous song or begining of current song
 def previous_track(sp):
     sp.previous_track()
 
-
+#Adds or removes song from saved tracks
 def like_trk(sp):
     ids = read_ids()
     track = [sp.current_user_playing_track().get("item").get("uri")]
@@ -425,7 +438,7 @@ def like_trk(sp):
         f.write(i + "\n")
     f.close()
 
-
+#Changes heart element based on if the song is saved or not
 def change_like_pic(sp, window, like_butt):
     like_no = tk.PhotoImage(file="./resources/like_non.png")
     like_non = like_no.subsample(2, 2)
@@ -448,7 +461,7 @@ def change_like_pic(sp, window, like_butt):
             window.update_idletasks()
         time.sleep(0.3)
 
-
+#thread for checking saved songs in the background
 def like_pic_change(sp, window, like_butt):
     t = threading.Thread(
         target=change_like_pic, args=[sp, window, like_butt], daemon=True
@@ -456,13 +469,13 @@ def like_pic_change(sp, window, like_butt):
     t.setName("Like_pic")
     return t
 
-
+#initializes mqtt client and subscribes to topics
 def mqtt(mode, var_time):
     client = connect()
     subscribe(client, var_time, mode)
     client.loop_forever()
 
-
+#connects to mqtt server
 def connect():
     def on_connect(client, userdata, flags, rc):
         if rc == 0:
@@ -476,7 +489,7 @@ def connect():
     client.connect(broker, port)
     return client
 
-
+#subscribes to mqtt topic
 def subscribe(client, var_time, mode):
     def on_message(client, userdata, msg):
         print(msg.payload.decode())
@@ -500,7 +513,7 @@ def subscribe(client, var_time, mode):
     client.subscribe(topic)
     client.on_message = on_message
 
-
+#helper function for notifying thread that makes list of saved song when to run again
 def id_recheck_thread(sp, error):
     end = None
     start = time.time()
@@ -512,25 +525,25 @@ def id_recheck_thread(sp, error):
             start = time.time()
         time.sleep(1)
 
-
+#thread that rechecks saved songs
 def recheck(sp, error):
     t = threading.Thread(target=id_recheck_thread, daemon=True, args=[sp, error])
     t.setName("Ids_recheck")
     return t
 
-
+#sets mode of door sensor to stopping mode (stops playback when doors open)
 def set_stop(mode):
     mode.set("stop")
 
-
+#sets mode of door sensor to nothing mode (nothing happens when doors open)
 def set_mothing(mode):
     mode.set("nothing")
 
-
+#sets mode of door sensor to lock and stop mode (stops playback and lock computer when doors open)
 def set_lock_and_stop(mode):
     mode.set("lock_and_stop")
 
-
+#error tracking function
 def error_func(error):
     while True:
         err = error.get()
@@ -551,13 +564,13 @@ def error_func(error):
             error.set("")
         time.sleep(120)
 
-
+#thread for checking if error occured
 def Error_thread(error):
     t = threading.Thread(target=error_func, args=[error])
     t.setName("Error_thread")
     return t
 
-
+#makes pool of threads to start
 def make_list_of_threads(
     sp,
     window,
@@ -599,7 +612,7 @@ def make_list_of_threads(
     # threads.append(Error_thread(error))
     return threads
 
-
+#starts whole pool of threads
 def start_threads(
     sp,
     window,
@@ -637,7 +650,7 @@ def start_threads(
     for i in threads:
         i.start()
 
-
+#makes main thread
 def get_main_thread(
     sp,
     Stop,
@@ -673,7 +686,7 @@ def get_main_thread(
     t.setName("Mainthread")
     return t
 
-
+# runs all threads including main thread
 def run_all():
     while check_internet() == False:
         time.sleep(1)
@@ -760,7 +773,7 @@ def run_all():
     spotify_window.grid()
     window.mainloop()
 
-
+#initializes tkinter windows
 def initialize_tkinter():
     window = tk.Tk()
     window.configure(bg="black")
@@ -774,7 +787,7 @@ def initialize_tkinter():
     spotify_window.geometry("+-2895+1600")
     return window, spotify_window
 
-
+#initializes tokens
 def initilaize_tokens():
     (
         scope,
@@ -787,7 +800,7 @@ def initilaize_tokens():
     )
     return sp
 
-
+#checks for internet connection
 def check_internet():
     url = "http://www.kite.com"
     timeout = 5
