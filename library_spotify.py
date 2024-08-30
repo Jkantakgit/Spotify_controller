@@ -84,7 +84,7 @@ def get_img(item):
     images = album.get("images")
     image = images[2]
     imag = image.get("url")
-    with open("alb.png", "wb") as fil:
+    with open("./resources/alb.png", "wb") as fil:
         response = requests.get(imag)
         fil.write(response.content)
 
@@ -112,7 +112,7 @@ def check_author_lenghts(item):
 
 
 def change_alb_pic(Panel, window):
-    alb_img = ImageTk.PhotoImage(Image.open("alb.png"))
+    alb_img = ImageTk.PhotoImage(Image.open("./resources/alb.png"))
     Panel.config(image=alb_img)
     Panel.image = alb_img
     window.update_idletasks()
@@ -182,7 +182,7 @@ def track_info(
                 if a == 0:
                     callback_2(Stop, window, img_play)
                     img2 = Image.new("1", (64, 64))
-                    img2.save("alb.png")
+                    img2.save("./resources/alb.png")
                     change_alb_pic(Panel, window)
                 a = 1
         except Exception as s:
@@ -215,7 +215,7 @@ def initialize_variables():
 
 def make_black_pic():
     img2 = Image.new("1", (64, 64))
-    img2.save("alb.png")
+    img2.save("./resources/alb.png")
 
 
 def initialize_windowns_and_buttons(
@@ -342,14 +342,14 @@ def stop_play(sp):
 
 
 def initialize_pictures():
-    like_non = ImageTk.PhotoImage(Image.open("like_non.png"))
-    next_img = tk.PhotoImage(file="Next_butt.png")
+    like_non = ImageTk.PhotoImage(Image.open("./resources/like_non.png"))
+    next_img = tk.PhotoImage(file="./resources/Next_butt.png")
     next_img = next_img.subsample(2, 2)
-    play_img = ImageTk.PhotoImage(Image.open("Play_butt.png"))
-    prev_img = tk.PhotoImage(file="Prev_butt.png")
+    play_img = ImageTk.PhotoImage(Image.open("./resources/Play_butt.png"))
+    prev_img = tk.PhotoImage(file="./resources/Prev_butt.png")
     prev_img = prev_img.subsample(2, 2)
-    stop_img = ImageTk.PhotoImage(Image.open("Stop_butt.png"))
-    alb_img = ImageTk.PhotoImage(Image.open("alb.png"))
+    stop_img = ImageTk.PhotoImage(Image.open("./resources/Stop_butt.png"))
+    alb_img = ImageTk.PhotoImage(Image.open("./resources/alb.png"))
     return like_non, next_img, play_img, prev_img, stop_img, alb_img
 
 
@@ -427,9 +427,9 @@ def like_trk(sp):
 
 
 def change_like_pic(sp, window, like_butt):
-    like_no = tk.PhotoImage(file="like_non.png")
+    like_no = tk.PhotoImage(file="./resources/like_non.png")
     like_non = like_no.subsample(2, 2)
-    lik = tk.PhotoImage(file="like.png")
+    lik = tk.PhotoImage(file="./resources/like.png")
     like = lik.subsample(2, 2)
     while True:
         try:

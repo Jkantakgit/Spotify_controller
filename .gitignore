@@ -3,3 +3,8 @@ variables
 alb.png
 errors
 Ids.txt
+.vscode
+__pychache__
+__pycache__/
+__pycache__/.
+.cache
